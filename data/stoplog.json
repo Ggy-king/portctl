@@ -1,0 +1,10 @@
+[
+ {
+  "ts": 1793184839450,
+  "port": 9977,
+  "pid": 54543,
+  "command": "node -e require('http').createServer((q,s)=>s.end('<html><title>牺牲品测试页</title></html>')).listen(9977)",
+  "cwd": "/Users/ggy/Developer/xiaoke-app",
+  "user": "ggy"
+ }
+]

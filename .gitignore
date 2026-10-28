@@ -1,0 +1,8 @@
+# 运行时数据（每台机器各自的停止记录，不同步）
+data/
+
+# 系统
+.DS_Store
+Thumbs.db
+*.log
+node_modules/

@@ -13,6 +13,7 @@
     <h1>端口管家 <span class="plat" id="plat"></span></h1>
     <div class="tabs">
       <button class="tab on" data-view="ports">端口 <span class="badge" id="portBadge"></span></button>
+      <button class="tab" data-view="start">一键启动 <span class="badge" id="startBadge"></span></button>
       <button class="tab" data-view="log">停止记录 <span class="badge" id="logBadge"></span></button>
     </div>
   </div>
@@ -29,8 +30,13 @@
     </div>
     <div id="rows"><div class="loading">读取中…</div></div>
   </div>
+  <div id="view-start" hidden>
+    <div class="cols cols-start"><span>启动方式</span><span>端口</span><span>名称</span><span>启动命令 · 工作目录（点击看详情）</span><span></span></div>
+    <div id="startRows"><div class="loading">读取中…</div></div>
+    <div class="foot">从「停止记录」自动生成 · 名称自动取自端口页的网页识别，改名后全局同步</div>
+  </div>
   <div id="view-log" hidden>
-    <div class="cols cols-log"><span>时间</span><span>端口</span><span>被停的进程 · 路径（点击看详情）</span></div>
+    <div class="cols cols-log"><span>时间</span><span>端口</span><span>名称</span><span>被停的进程 · 路径（点击看详情）</span></div>
     <div id="logRows"><div class="loading">读取中…</div></div>
     <div class="foot">只记录从本页面停止的服务 · 自己在终端里 kill 的不会出现在这里</div>
   </div>

@@ -9,6 +9,7 @@ const PORT = 9123;
 const PUB = path.join(__dirname, 'public');
 const LOG_DIR = path.join(__dirname, 'data');
 const LOG_PATH = path.join(LOG_DIR, 'stoplog.json');
+const ALIAS_PATH = path.join(LOG_DIR, 'aliases.json'); // 网页识别自定义命名（port -> 名字），本地保存不同步
 const ME = require('os').userInfo().username;
 const IS_WIN = process.platform === 'win32';
 const IS_MAC = process.platform === 'darwin';
@@ -153,6 +154,30 @@ function saveLog(log) {
   fs.writeFileSync(LOG_PATH, JSON.stringify(log.slice(-200), null, 1));
 }
 
+// ============ 网页识别自定义命名（用户改过的名字优先于抓取的 title） ============
+function loadAliases() {
+  try { return JSON.parse(fs.readFileSync(ALIAS_PATH, 'utf8')); } catch { return {}; }
+}
+function saveAlias(port, name) {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
+  const a = loadAliases();
+  if (name) a[port] = String(name).slice(0, 60);
+  else delete a[port];
+  fs.writeFileSync(ALIAS_PATH, JSON.stringify(a, null, 1));
+  return a;
+}
+
+// ============ 一键启动：按记录的命令在原工作目录拉起进程 ============
+function startProc(command, cwd) {
+  if (!command || typeof command !== 'string') throw new Error('缺少启动命令');
+  const dir = cwd && fs.existsSync(cwd) ? cwd : undefined;
+  if (cwd && !dir) throw new Error(`工作目录不存在：${cwd}（项目可能被移动或删除）`);
+  const { spawn } = require('child_process');
+  const child = spawn(command, { shell: true, cwd: dir, detached: true, stdio: 'ignore' });
+  child.unref();
+  return { pid: child.pid, cwd: dir || '(当前目录)' };
+}
+
 async function stopPid(pid) {
   const cur = await scanPorts();
   const hit = cur.find(p => p.procs.some(x => x.pid === pid));
@@ -162,12 +187,15 @@ async function stopPid(pid) {
   if (/^(launchd|kernel_task|WindowServer|loginwindow|Finder|System)$/.test(String(proc.command.split(/[\\/]/).pop().split(' ')[0]))) {
     throw new Error('系统关键进程，拒绝停止');
   }
+  // 停止前抓一次网页识别名（kill 之后就探不到了），让停止记录/一键启动永久带上名称
+  let title = '';
+  try { const pr = await probe(hit.port); title = pr.http ? (pr.title || '') : ''; } catch {}
   if (IS_WIN) await sh('taskkill', ['/PID', String(pid), '/F']);
   else process.kill(pid);
   saveLog([...loadLog(), {
-    ts: Date.now(), port: hit.port, pid, command: proc.command, cwd: proc.cwd || '', user: proc.user,
+    ts: Date.now(), port: hit.port, pid, command: proc.command, cwd: proc.cwd || '', user: proc.user, title,
   }]);
-  return { port: hit.port, command: proc.command, cwd: proc.cwd || '' };
+  return { port: hit.port, command: proc.command, cwd: proc.cwd || '', title };
 }
 
 // 在访达/资源管理器里显示某个路径
@@ -201,6 +229,31 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify(await probe(port)));
     }
     if (u.pathname === '/api/stoplog') return res.end(JSON.stringify({ log: loadLog().slice(-200).reverse() }));
+    if (u.pathname === '/api/aliases') return res.end(JSON.stringify({ aliases: loadAliases() }));
+    if (req.method === 'POST' && u.pathname === '/api/alias') {
+      let body = '';
+      req.on('data', c => body += c);
+      req.on('end', () => {
+        try {
+          const { port, name } = JSON.parse(body);
+          const p = Number(port);
+          if (!p) { res.writeHead(400); return res.end(JSON.stringify({ error: 'no port' })); }
+          res.end(JSON.stringify({ ok: true, aliases: saveAlias(p, String(name || '').trim()) }));
+        } catch (e) { res.writeHead(400); res.end(JSON.stringify({ error: e.message })); }
+      });
+      return;
+    }
+    if (req.method === 'POST' && u.pathname === '/api/start') {
+      let body = '';
+      req.on('data', c => body += c);
+      req.on('end', () => {
+        try {
+          const { command, cwd } = JSON.parse(body);
+          res.end(JSON.stringify({ ok: true, ...startProc(command, cwd) }));
+        } catch (e) { res.writeHead(400); res.end(JSON.stringify({ error: e.message })); }
+      });
+      return;
+    }
     if (req.method === 'POST' && u.pathname === '/api/stop') {
       let body = '';
       req.on('data', c => body += c);

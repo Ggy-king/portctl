@@ -6,5 +6,31 @@
   "command": "node -e require('http').createServer((q,s)=>s.end('<html><title>牺牲品测试页</title></html>')).listen(9977)",
   "cwd": "/Users/ggy/Developer/xiaoke-app",
   "user": "ggy"
+ },
+ {
+  "ts": 1794223371603,
+  "port": 7310,
+  "pid": 98978,
+  "command": "node server.js",
+  "cwd": "/Users/ggy/Developer/exo",
+  "user": "ggy"
+ },
+ {
+  "ts": 1794224237765,
+  "port": 7310,
+  "pid": 40628,
+  "command": "node server.js",
+  "cwd": "/Users/ggy/Developer/exo",
+  "user": "ggy",
+  "title": ""
+ },
+ {
+  "ts": 1794224262389,
+  "port": 7310,
+  "pid": 41304,
+  "command": "node server.js",
+  "cwd": "/Users/ggy/Developer/exo",
+  "user": "ggy",
+  "title": "EXO · 工作台"
  }
 ]

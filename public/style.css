@@ -52,7 +52,11 @@ main { padding: 14px 24px 40px; }
   gap: 12px; align-items: center;
 }
 .cols { padding: 0 14px 6px; font-size: 11px; color: var(--dim); letter-spacing: 1px; }
-.cols-log { grid-template-columns: 130px 84px 1fr; }
+.cols-log { grid-template-columns: 110px 84px 190px 1fr; }
+.cols-start { grid-template-columns: 90px 84px 190px 1fr 90px; }
+.nm { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: .3px; }
+.nm .ed { cursor: pointer; font-size: 10px; color: var(--dim); font-weight: 400; margin-left: 4px; }
+.nm.none { color: var(--dim); font-weight: 400; opacity: .6; }
 .row {
   background: var(--card); border: 1px solid rgba(255,255,255,.05); border-radius: 11px;
   padding: 5px 14px; margin-bottom: 5px; transition: border-color .15s;
